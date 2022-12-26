@@ -1,3 +1,4 @@
+import cvxopt
 import numpy as np
 from cvxopt import solvers, matrix, spmatrix, spdiag, sparse
 import matplotlib.pyplot as plt
@@ -13,7 +14,20 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     :param trainy: numpy array of size (m, 1) containing the labels of the training sample
     :return: linear predictor w, a numpy array of size (d, 1)
     """
-    raise NotImplementedError()
+    m, d = trainX.shape
+
+    u = matrix(np.concatenate((np.zeros(d), (1 / m) * np.ones(m))))
+    H = spmatrix(2 * l, range(d), range(d), (d + m, d + m))
+    v = matrix(np.concatenate((np.zeros(m), np.ones(m))))
+    X = np.diag(trainy) @ trainX
+    A = matrix(np.block([[np.zeros((m, d)), np.eye(m)], [X, np.eye(m)]]))
+
+    sol = cvxopt.solvers.qp(H, u, -A, -v)
+
+    w = np.array(sol['x'][:d])
+
+    return w
+
 
 def simple_test():
     # load question 2 data
