@@ -1,7 +1,6 @@
 import cvxopt
 import numpy as np
-from cvxopt import solvers, matrix, spmatrix, spdiag, sparse
-import matplotlib.pyplot as plt
+from cvxopt import matrix, spmatrix
 
 
 # todo: complete the following functions, you may add auxiliary functions or define class to help you
@@ -17,7 +16,7 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     m, d = trainX.shape
 
     u = matrix(np.concatenate((np.zeros(d), (1 / m) * np.ones(m))))
-    H = spmatrix(2 * l, range(d), range(d), (d + m, d + m))
+    H = matrix(np.block([[2 * l * np.eye(d), np.zeros((d, m))], [np.zeros((m, d + m))]]))
     v = matrix(np.concatenate((np.zeros(m), np.ones(m))))
     X = np.diag(trainy) @ trainX
     A = matrix(np.block([[np.zeros((m, d)), np.eye(m)], [X, np.eye(m)]]))
