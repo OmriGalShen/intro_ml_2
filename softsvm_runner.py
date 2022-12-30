@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from softsvm import softsvm
 
 
-def softsvm_runner_with_repeats(sample_size: int, repeats: int, lambda_powers, title: str):
+def softsvm_runner_2a(sample_size: int, repeats: int, lambda_powers, title):
     lambda_values = [10 ** n for n in lambda_powers]
 
     train_errors_total, test_errors_total = [], []
@@ -18,18 +18,17 @@ def softsvm_runner_with_repeats(sample_size: int, repeats: int, lambda_powers, t
         test_errors_total.append(test_errors)
 
     plot_error_with_bar(errors=train_errors_total, x_axis=lambda_values, color="blue", ecolor="cyan",
-                        label="train error")
+                        label=f"train error (size={sample_size})")
     plot_error_with_bar(errors=test_errors_total, x_axis=lambda_values, color="green", ecolor="lime",
-                        label="test errors")
+                        label=f"test error (size={sample_size})")
     plt.legend(loc="upper left")
     plt.title(f"{title} (sample size: {sample_size})")
     plt.xlabel('λ')
     plt.xscale('log')
     plt.ylabel(f"Mean error {repeats} repeats")
-    plt.show()
 
 
-def softsvm_runner_without_repeats(sample_size: int, lambda_powers, title: str):
+def softsvm_runner_2b(sample_size: int, lambda_powers, title: str):
     lambda_values = [10 ** n for n in lambda_powers]
 
     train_errors, test_errors = [], []
@@ -38,29 +37,26 @@ def softsvm_runner_without_repeats(sample_size: int, lambda_powers, title: str):
         train_errors.append(train_error)
         test_errors.append(test_error)
 
-    plt.scatter(lambda_values, train_errors, color="blue", label="train error")
-    plt.scatter(lambda_values, test_errors, color="green", label="test error")
+    plt.scatter(lambda_values, train_errors, color="red", label=f"train error (size={sample_size})", zorder=10)
+    plt.scatter(lambda_values, test_errors, color="gold", label=f"test error (size={sample_size})", zorder=10)
     plt.legend(loc="upper left")
-    plt.title(f"{title} (sample size: {sample_size})")
-    plt.xlabel('λ')
-    plt.xscale('log')
+    plt.title(title)
     plt.ylabel(f"Error")
-    plt.show()
 
 
 def plot_error_with_bar(errors, x_axis, color: str, ecolor: str, label: str):
     avg_errors, error_bar = calc_repeats_errors(errors)
-    plt.plot(x_axis, avg_errors, color=color, marker="o", label=label)
-    plt.errorbar(x=x_axis, y=avg_errors, yerr=error_bar, fmt="none", ecolor=ecolor, capsize=1)
+    plt.plot(x_axis, avg_errors, color=color, marker="o", label=label, zorder=1)
+    plt.errorbar(x=x_axis, y=avg_errors, yerr=error_bar, fmt="none", ecolor=ecolor, capsize=2, zorder=1)
 
 
 def calc_repeats_errors(errors):
-    min_errors = [min(curr) for curr in errors]
-    max_errors = [max(curr) for curr in errors]
-    avg_errors = [sum(curr) / len(curr) for curr in errors]
-    min_distance = [a - b for a, b in zip(avg_errors, min_errors)]
-    max_distance = [b - a for a, b in zip(avg_errors, max_errors)]
-    error_bar = np.array([min_distance, max_distance])
+    avg_errors = np.apply_along_axis(lambda e: np.mean(e), 1, errors)
+    min_errors = np.apply_along_axis(lambda e: min(e), 1, errors)
+    max_errors = np.apply_along_axis(lambda e: max(e), 1, errors)
+    avg_distance_min = avg_errors - min_errors
+    avg_distance_max = max_errors - avg_errors
+    error_bar = np.vstack((avg_distance_min, avg_distance_max))
     return avg_errors, error_bar
 
 
@@ -92,5 +88,13 @@ if __name__ == '__main__':
     trainY_source = data['Ytrain']
     testX = data['Xtest']
     testy = data['Ytest']
-    softsvm_runner_with_repeats(sample_size=100, repeats=10, lambda_powers=range(1, 11), title="Experiments 1")
-    softsvm_runner_without_repeats(sample_size=1000, lambda_powers=[1, 3, 5, 8], title="Experiments 2")
+
+    # Question 2A
+    # softsvm_runner_2a(sample_size=100, repeats=10, lambda_powers=range(1, 11), title="Question 2A")
+    # plt.show()
+
+    # Question 2B
+    # softsvm_runner_2a(sample_size=100, repeats=10, lambda_powers=range(1, 11), title="Question 2A")
+    # softsvm_runner_2b(sample_size=1000, lambda_powers=[1, 3, 5, 8], title="Question 2B")
+    # plt.show()
+
