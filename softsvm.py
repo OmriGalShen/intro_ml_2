@@ -24,7 +24,6 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     sol = cvxopt.solvers.qp(H, u, -A, -v)
 
     w = np.array(sol['x'][:d])
-
     return w
 
 

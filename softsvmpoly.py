@@ -32,7 +32,6 @@ def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
 
     sol = solvers.qp(H, u, -A, -v)
     alpha = np.array(sol['x'][:m])
-
     return alpha
 
 
