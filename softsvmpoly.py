@@ -13,12 +13,32 @@ def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
     :param trainy: numpy array of size (m, 1) containing the labels of the training sample
     :return: numpy array of size (m, 1) which describes the coefficients found by the algorithm
     """
-    raise NotImplementedError()
+    m, d = trainX.shape
+
+    u = matrix(np.concatenate((np.zeros(d), (1 / m) * np.ones(m))))
+    v = matrix(np.concatenate((np.zeros(m), np.ones(m))))
+
+    G = np.array([[(1 + trainX[i] @ trainX[j]) ** k for j in range(m)] for i in range(m)])
+
+    A = matrix(np.block(
+        [[np.zeros((m, m)), np.eye(m)],
+         [np.diag(trainy) @ G, np.eye(m)]]))
+
+    H = np.block(
+        [[2 * l * G, np.zeros((m, m))],
+         [np.zeros((m, m)), np.zeros((m, m))]])
+    H += 1e-5 * np.eye(H.shape[0])
+    H = matrix(H)
+
+    sol = solvers.qp(H, u, -A, -v)
+    alpha = np.array(sol['x'][:m])
+
+    return alpha
 
 
 def simple_test():
     # load question 2 data
-    data = np.load('EX2q2_mnist.npz')
+    data = np.load('ex2q4_data.npz')
     trainX = data['Xtrain']
     testX = data['Xtest']
     trainy = data['Ytrain']
@@ -36,7 +56,7 @@ def simple_test():
 
     # tests to make sure the output is of the intended class and shape
     assert isinstance(w, np.ndarray), "The output of the function softsvmbf should be a numpy array"
-    assert w.shape[0] == 1 and w.shape[1] == 1, f"The shape of the output should be ({m}, 1)"
+    assert w.shape[0] == m and w.shape[1] == 1, f"The shape of the output should be ({m}, 1)"
 
 
 if __name__ == '__main__':
