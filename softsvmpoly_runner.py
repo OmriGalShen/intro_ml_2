@@ -30,10 +30,11 @@ def question4b_softsvmpoly_cross_validation(folds: int, lambda_values, k_values)
     print(f"------------------------")
     optimal_k, optimal_lambda = None, None
     min_error = 1.1
+    m = trainX.shape[0]
     for k in k_values:
         for lambda_param in lambda_values:
             fold_errors = []
-            for fold_indices in np.array_split(np.arange(trainX.shape[0]), folds):
+            for fold_indices in np.array_split(np.arange(m), folds):
                 fold_x = trainX[fold_indices]
                 fold_y = trainY[fold_indices]
                 fold_error = run_softsvmpoly(lambda_param, k, fold_x, fold_y)
@@ -45,11 +46,11 @@ def question4b_softsvmpoly_cross_validation(folds: int, lambda_values, k_values)
                 min_error = fold_mean_error
                 optimal_k, optimal_lambda = k, lambda_param
 
-    print(f"-------Results-----------")
+    print(f"------- Results -----------")
     print(f"Optimal parameters: k = {optimal_k}, lambda = {optimal_lambda} ")
     test_error = run_softsvmpoly(optimal_lambda, optimal_k, trainX, trainY)
     print(f"k = {optimal_k}, lambda = {optimal_lambda} test error: {test_error}")
-    print(f"------------------------")
+    print(f"---------------------------")
     print()
 
 
@@ -84,35 +85,41 @@ def question4b_softsvm_cross_validation(folds: int, lambda_values):
         if fold_mean_error < min_error:
             min_error = fold_mean_error
             optimal_lambda = lambda_param
-    print(f"-------Results-----------")
+    print(f"------- Results -----------")
     print(f"Optimal lambda = {optimal_lambda}")
     w = softsvm.softsvm(optimal_lambda, testX, testy)
     test_error = softsvm_runner.calc_error(testX, testy, w)
     print(f"lambda = {optimal_lambda} test error: {test_error}")
-    print(f"------------------------")
+    print(f"--------------------------")
     print()
 
 
 def question_4e():
     lambda_param = 100
     k_values = [3, 5, 8]
-    red, blue = (255, 0, 0), (0, 0, 255)
+
     for k in k_values:
         alphas = softsvmpoly(lambda_param, k, trainX, trainY)
-        grid = []
-        for i in np.linspace(-1, 1, 101):
-            grid_row = []
-            for j in np.linspace(-1, 1, 101):
-                predicted_y = int(calc_predicted_y(alphas, (i, j), k, trainX))
-                color_value = blue if predicted_y == 1 else red
-                grid_row.append(color_value)
-            grid.append(grid_row)
+        grid_bounds = np.linspace(-1, 1, 101)
+        grid = [[color_func(alphas, k, i, j) for j in grid_bounds] for i in grid_bounds]
 
         plt.imshow(grid,
                    extent=[-1, 1, -1, 1],
                    cmap=plt.cm.RdBu)
         plt.title(f"Question 4e (lambda = {lambda_param}, k = {k})")
         plt.show()
+
+
+def color_func(alphas, k, i, j):
+    red, blue = (255, 0, 0), (0, 0, 255)
+    if int(calc_predicted_y(alphas, (i, j), k, trainX)) == 1:
+        return blue
+    else:
+        return red
+
+
+def question_4f():
+    pass
 
 
 if __name__ == '__main__':
@@ -124,4 +131,5 @@ if __name__ == '__main__':
 
     # question_4a()
     # question_4b()
-    question_4e()
+    # question_4e()
+    # question_4f()
