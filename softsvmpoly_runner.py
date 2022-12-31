@@ -143,8 +143,8 @@ def question_4f():
         lst = neg_label_values if predicated_label == -1 else positive_label_values
         lst.append(x)
 
-    add_scatter(positive_label_values, color="blue", label="1")
-    add_scatter(neg_label_values, color="green", label="-1")
+    add_scatter(positive_label_values, color="gold", label="1")
+    add_scatter(neg_label_values, color="blue", label="-1")
     plt.legend()
     plt.title('Question 4f - results for calculated w (train + test)')
     plt.xlabel('x')
@@ -187,4 +187,4 @@ if __name__ == '__main__':
     # question_4a()
     # question_4b()
     # question_4e()
-    # question_4f()
+    question_4f()
