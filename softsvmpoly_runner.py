@@ -135,27 +135,27 @@ def question_4f():
     w = w.reshape((w.shape[1]))
     print(f"calculated w = {w}")
 
-    predictions_1 = []
-    predictions_minus = []
+    positive_label_values = []
+    neg_label_values = []
 
     for x in np.concatenate([trainX, testX]):
-        label = np.sign(np.inner(w, calc_psi(x, k)))
-        if label == 1:
-            predictions_1.append(x)
-        else:
-            predictions_minus.append(x)
+        predicated_label = int(np.sign(np.inner(w, calc_psi(x, k))))
+        lst = neg_label_values if predicated_label == -1 else positive_label_values
+        lst.append(x)
 
-    red_xs = [x[0] for x in predictions_1]
-    red_ys = [x[1] for x in predictions_1]
-    blue_xs = [x[0] for x in predictions_minus]
-    blue_ys = [x[1] for x in predictions_minus]
-    plt.scatter(red_xs, red_ys, color="red", label="label = 1")
-    plt.scatter(blue_xs, blue_ys, color="blue", label="label = -1")
+    add_scatter(positive_label_values, color="blue", label="1")
+    add_scatter(neg_label_values, color="green", label="-1")
     plt.legend()
     plt.title('Question 4f - results for calculated w (train + test)')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.show()
+
+
+def add_scatter(values, color, label):
+    x_axis = [x[0] for x in values]
+    y_axis = [x[1] for x in values]
+    plt.scatter(x_axis, y_axis, color=color, label=label)
 
 
 def calc_psi(x, k):
@@ -187,4 +187,4 @@ if __name__ == '__main__':
     # question_4a()
     # question_4b()
     # question_4e()
-    question_4f()
+    # question_4f()
