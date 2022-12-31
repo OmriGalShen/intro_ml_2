@@ -1,5 +1,3 @@
-from itertools import product
-
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -26,76 +24,73 @@ def question_4b():
     question4b_softsvm_cross_validation(folds, lambda_values)
 
 
-def _soft_svm_poly(params):
-    l, k = params
-    alphas = softsvmpoly(l, k, trainX, trainY)
-
-    def ret_func(x):
-        a = sum([alphas[i] * (1 + trainX[i] @ x) ** k for i in range(trainX.shape[0])])
-        return np.sign(a)
-
-    return ret_func
-
-
-def test_softsvmpoly(pred, testX, testY):
-    count = 0
-    for i in range(testX.shape[0]):
-        if pred(testX[i]) != np.sign(testY[i]):
-            count += 1
-    return count / testY.shape[0]
-
-
 def question4b_softsvmpoly_cross_validation(folds: int, lambda_values, k_values):
-    lambda_k_comb = list(product(lambda_values, k_values))
-    sample_fold_size = trainX.shape[0] // folds
+    print(f"------------------------")
+    print(f"Running cross validation {folds} folds on softsvmpoly")
+    print(f"------------------------")
+    optimal_k, optimal_lambda = None, None
+    min_error = 1.1
+    for k in k_values:
+        for lambda_param in lambda_values:
+            fold_errors = []
+            for fold_indices in np.array_split(np.arange(trainX.shape[0]), folds):
+                fold_x = trainX[fold_indices]
+                fold_y = trainY[fold_indices]
+                fold_error = run_softsvmpoly(lambda_param, k, fold_x, fold_y)
+                fold_errors.append(fold_error)
 
-    errors = []
-    for param in lambda_k_comb:
-        errs = []
-        for fold_index in range(5):
-            start = fold_index * sample_fold_size
-            end = start + sample_fold_size
-            X_validation = trainX[start:end]
-            y_validation = trainY[start:end]
-            X_train = np.concatenate([trainX[:start], trainX[end:]])
-            y_train = np.concatenate([trainY[:start], trainY[end:]])
+            fold_mean_error = np.mean(fold_errors)
+            print(f"k = {k}, lambda = {lambda_param}, average validation error = {fold_mean_error}")
+            if fold_mean_error < min_error:
+                min_error = fold_mean_error
+                optimal_k, optimal_lambda = k, lambda_param
 
-            predictor = _soft_svm_poly(param)
-            errs.append(test_softsvmpoly(predictor, X_validation, y_validation))
-        param_error = np.mean(np.array(errs))
-        errors.append(param_error)
-        print(f"average validation error for λ = {param[0]} k = {param[1]} is {param_error}")
-    
-    optimal_parameter = lambda_k_comb[np.argmin(errors)]
-    print(f"The optimal parameter is {optimal_parameter}")
-    predictor = _soft_svm_poly(lambda_k_comb[np.argmin(errors)])
-    print(f"test error for selected parameters: {test_softsvmpoly(predictor, testX, testy)}")
+    print(f"-------Results-----------")
+    print(f"Optimal parameters: k = {optimal_k}, lambda = {optimal_lambda} ")
+    test_error = run_softsvmpoly(optimal_lambda, optimal_k, trainX, trainY)
+    print(f"k = {optimal_k}, lambda = {optimal_lambda} test error: {test_error}")
+    print(f"------------------------")
+    print()
 
 
-def question4b_softsvm_cross_validation(lambda_values):
-    fold_size = trainX.shape[0] // 5
-    lambda_errors = []
+def run_softsvmpoly(lambda_param, k, examples_x, examples_y):
+    alphas = softsvmpoly(lambda_param, k, examples_x, examples_y)
+    predicted_y = np.apply_along_axis(lambda x: calc_predicted_y(alphas, x, k, examples_x), 1, examples_x)
+    predicted_y = predicted_y.reshape((examples_y.shape[0]))
+    return np.sum(predicted_y != examples_y) / examples_y.shape[0]
 
+
+def calc_predicted_y(alphas, x, k, x_examples):
+    return np.sign(sum([alphas[i] * (1 + x_examples[i] @ x) ** k for i in range(x_examples.shape[0])]))
+
+
+def question4b_softsvm_cross_validation(folds: int, lambda_values):
+    print(f"------------------------")
+    print(f"Running cross validation {folds} folds on softsvm:")
+    print(f"------------------------")
+    optimal_lambda = None, None
+    min_error = 1.1
     for lambda_param in lambda_values:
-        errs = []
-        for fold_index in range(5):
-            start = fold_index * fold_size
-            end = start + fold_size
-            X_validation = trainX[start:end]
-            y_validation = trainY[start:end]
-            X_train = np.concatenate([trainX[:start], trainX[end:]])
-            y_train = np.concatenate([trainY[:start], trainY[end:]])
+        fold_errors = []
+        for fold_indices in np.array_split(np.arange(trainX.shape[0]), folds):
+            fold_x = trainX[fold_indices]
+            fold_y = trainY[fold_indices]
+            w = softsvm.softsvm(lambda_param, fold_x, fold_y)
+            fold_error = softsvm_runner.calc_error(fold_x, fold_y, w)
+            fold_errors.append(fold_error)
 
-            w = softsvm.softsvm(lambda_param, X_train, y_train)
-            error = softsvm_runner.calc_error(w, X_validation, y_validation)
-            errs.append(error)
-        lambda_error = np.mean(np.array(errs))
-        lambda_errors.append(lambda_error)
-        print(f"The average validation error for {lambda_param} is {lambda_error}")
-    print(f"The selected prameter is {lambda_values[np.argmin(lambda_errors)]}")
-    w = softsvm.softsvm(lambda_values[np.argmin(lambda_errors)], trainX, trainY)
+        fold_mean_error = np.mean(fold_errors)
+        print(f"lambda = {lambda_param}, average validation error = {fold_mean_error}")
+        if fold_mean_error < min_error:
+            min_error = fold_mean_error
+            optimal_lambda = lambda_param
+    print(f"-------Results-----------")
+    print(f"Optimal lambda = {optimal_lambda}")
+    w = softsvm.softsvm(optimal_lambda, testX, testy)
     test_error = softsvm_runner.calc_error(testX, testy, w)
-    print(f"test error for selected parameters: {test_error}")
+    print(f"lambda = {optimal_lambda} test error: {test_error}")
+    print(f"------------------------")
+    print()
 
 
 if __name__ == '__main__':

@@ -20,7 +20,7 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     v = matrix(np.concatenate((np.zeros(m), np.ones(m))))
     X = np.diag(trainy) @ trainX
     A = matrix(np.block([[np.zeros((m, d)), np.eye(m)], [X, np.eye(m)]]))
-
+    cvxopt.solvers.options['show_progress'] = False
     sol = cvxopt.solvers.qp(H, u, -A, -v)
 
     w = np.array(sol['x'][:d])

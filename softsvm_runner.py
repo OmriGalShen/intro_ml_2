@@ -90,7 +90,7 @@ if __name__ == '__main__':
     testy = data['Ytest']
 
     # Question 2A
-    # softsvm_runner_2a(sample_size=100, repeats=10, lambda_powers=range(1, 11), title="Question 2A")
+    softsvm_runner_2a(sample_size=100, repeats=10, lambda_powers=range(1, 11), title="Question 2A")
     # plt.show()
 
     # Question 2B
