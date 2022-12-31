@@ -1,3 +1,8 @@
+from functools import reduce
+from itertools import product
+from math import factorial
+
+import matplotlib.patches as mpatches
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -107,6 +112,9 @@ def question_4e():
                    extent=[-1, 1, -1, 1],
                    cmap=plt.cm.RdBu)
         plt.title(f"Question 4e (lambda = {lambda_param}, k = {k})")
+        blue_patch = mpatches.Patch(color='blue', label='1')
+        red_patch = mpatches.Patch(color='red', label='-1')
+        plt.legend(handles=[red_patch, blue_patch])
         plt.show()
 
 
@@ -119,7 +127,54 @@ def color_func(alphas, k, i, j):
 
 
 def question_4f():
-    pass
+    lambda_param, k = 1, 5
+
+    alphas = softsvmpoly(lambda_param, k, trainX, trainY)
+    train_x_psi = np.apply_along_axis(calc_psi, 1, trainX, k)
+    w = alphas.T @ train_x_psi
+    w = w.reshape((w.shape[1]))
+    print(f"calculated w = {w}")
+
+    predictions_1 = []
+    predictions_minus = []
+
+    for x in np.concatenate([trainX, testX]):
+        label = np.sign(np.inner(w, calc_psi(x, k)))
+        if label == 1:
+            predictions_1.append(x)
+        else:
+            predictions_minus.append(x)
+
+    red_xs = [x[0] for x in predictions_1]
+    red_ys = [x[1] for x in predictions_1]
+    blue_xs = [x[0] for x in predictions_minus]
+    blue_ys = [x[1] for x in predictions_minus]
+    plt.scatter(red_xs, red_ys, color="red", label="label = 1")
+    plt.scatter(blue_xs, blue_ys, color="blue", label="label = -1")
+    plt.legend()
+    plt.title('Question 4f - results for calculated w (train + test)')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.show()
+
+
+def calc_psi(x, k):
+    d = x.shape[0]
+    i_k_d_degrees = [list(seq) for seq in product(range(k + 1), repeat=d) if sum(seq) <= k]
+    return np.apply_along_axis(calc_psi_for_t, 1, i_k_d_degrees, k, x, d)
+
+
+def calc_psi_for_t(t, k, x, d):
+    left_size = np.sqrt(get_multi_coeff(k, t))
+    right_side = reduce(lambda acc, i: acc * x[i] ** t[i], range(d), 1)
+    return left_size * right_side
+
+
+def get_multi_coeff(k: int, t: list):
+    t_factorial = 1
+    for x in t:
+        t_factorial *= factorial(x)
+    return factorial(k) / t_factorial
 
 
 if __name__ == '__main__':
@@ -132,4 +187,4 @@ if __name__ == '__main__':
     # question_4a()
     # question_4b()
     # question_4e()
-    # question_4f()
+    question_4f()
