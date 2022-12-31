@@ -15,7 +15,7 @@ def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
     """
     m, d = trainX.shape
 
-    u = matrix(np.concatenate((np.zeros(m), np.ones(m) * (1 / m))))
+    u = matrix(np.concatenate((np.zeros(m), (1 / m) * np.ones(m))))
 
     v = matrix(np.concatenate((np.zeros(m), np.ones(m))))
 
