@@ -55,13 +55,13 @@ def question4b_softsvmpoly_cross_validation(folds: int, lambda_values, k_values)
 
 def run_softsvmpoly(lambda_param, k, examples_x, examples_y):
     alphas = softsvmpoly(lambda_param, k, examples_x, examples_y)
-    predicted_y = np.apply_along_axis(lambda x: calc_predicted_y(alphas, x, k, examples_x), 1, examples_x)
+    predicted_y = np.apply_along_axis(lambda x_point: calc_predicted_y(alphas, x_point, k, examples_x), 1, examples_x)
     predicted_y = predicted_y.reshape((examples_y.shape[0]))
     return np.sum(predicted_y != examples_y) / examples_y.shape[0]
 
 
-def calc_predicted_y(alphas, x, k, x_examples):
-    return np.sign(sum([alphas[i] * (1 + x_examples[i] @ x) ** k for i in range(x_examples.shape[0])]))
+def calc_predicted_y(alphas, x_point, k, x_examples):
+    return np.sign(sum([alphas[i] * (1 + x_examples[i] @ x_point) ** k for i in range(x_examples.shape[0])]))
 
 
 def question4b_softsvm_cross_validation(folds: int, lambda_values):
@@ -93,6 +93,28 @@ def question4b_softsvm_cross_validation(folds: int, lambda_values):
     print()
 
 
+def question_4e():
+    lambda_param = 100
+    k_values = [3, 5, 8]
+    red, blue = (255, 0, 0), (0, 0, 255)
+    for k in k_values:
+        alphas = softsvmpoly(lambda_param, k, trainX, trainY)
+        grid = []
+        for i in np.linspace(-1, 1, 101):
+            grid_row = []
+            for j in np.linspace(-1, 1, 101):
+                predicted_y = int(calc_predicted_y(alphas, (i, j), k, trainX))
+                color_value = blue if predicted_y == 1 else red
+                grid_row.append(color_value)
+            grid.append(grid_row)
+
+        plt.imshow(grid,
+                   extent=[-1, 1, -1, 1],
+                   cmap=plt.cm.RdBu)
+        plt.title(f"Question 4e (lambda = {lambda_param}, k = {k})")
+        plt.show()
+
+
 if __name__ == '__main__':
     data = np.load('ex2q4_data.npz')
     trainX = data['Xtrain']
@@ -101,5 +123,5 @@ if __name__ == '__main__':
     testy = data['Ytest']
 
     # question_4a()
-
-    question_4b()
+    # question_4b()
+    question_4e()
