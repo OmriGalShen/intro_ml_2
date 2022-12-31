@@ -30,6 +30,7 @@ def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
     H += 1e-5 * np.eye(H.shape[0])
     H = matrix(H)
 
+    solvers.options['show_progress'] = False
     sol = solvers.qp(H, u, -A, -v)
     alpha = np.array(sol['x'][:m])
     return alpha
